@@ -4,7 +4,9 @@ use kaitai::{BytesReader, KStruct, OptRc};
 
 use crate::{
     autel_drone_log::AutelDroneLog,
-    log_processing::{build_messages, build_metadata, build_video_spans, collect_events, expand_events_to_rows},
+    log_processing::{
+        build_messages, build_metadata, build_video_spans, collect_events, transform_events_to_rows,
+    },
 };
 
 pub fn run() {
@@ -38,7 +40,7 @@ pub fn run() {
     let metadata_str = serde_json::to_string(&metadata).unwrap();
 
     let events = collect_events(&g);
-    let mut rows = expand_events_to_rows(&events, *g.header().start_time_ms());
+    let mut rows = transform_events_to_rows(&events, *g.header().start_time_ms());
 
     let messages = build_messages(&g);
     let message_str = serde_json::to_string(&messages).unwrap();

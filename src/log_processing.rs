@@ -7,6 +7,7 @@ use crate::{
     transform::{full_to_row, interpolate_photo_row},
 };
 
+/// Collects full rows and photo timestamps from the log.
 pub fn collect_events(log: &AutelDroneLog) -> Vec<Event> {
     let header = log.header();
     let start_time_ms = *header.start_time_ms();
@@ -30,6 +31,7 @@ pub fn collect_events(log: &AutelDroneLog) -> Vec<Event> {
         .collect()
 }
 
+/// Builds inclusive start/end ranges for video playback spans.
 pub fn build_video_spans(log: &AutelDroneLog) -> Vec<VideoSpan> {
     log.records()
         .iter()
@@ -48,6 +50,7 @@ pub fn build_video_spans(log: &AutelDroneLog) -> Vec<VideoSpan> {
         .collect()
 }
 
+/// Emits a message when the flight mode changes between full records.
 pub fn build_messages(log: &AutelDroneLog) -> Vec<Message> {
     let mut last_state: Option<String> = None;
 
@@ -77,7 +80,11 @@ pub fn build_messages(log: &AutelDroneLog) -> Vec<Message> {
         .collect()
 }
 
-pub fn expand_events_to_rows(events: &[Event], start_timestamp_ms: u64) -> Vec<crate::models::CsvRow> {
+/// Transforms events into CSV rows and interpolates photo rows when possible.
+pub fn transform_events_to_rows(
+    events: &[Event],
+    start_timestamp_ms: u64,
+) -> Vec<crate::models::CsvRow> {
     let mut out = Vec::new();
     let mut last_full: Option<&crate::models::CsvRow> = None;
 
@@ -102,12 +109,15 @@ pub fn expand_events_to_rows(events: &[Event], start_timestamp_ms: u64) -> Vec<c
 
                 match next {
                     Some(next_full)
-                    if prev.timestamp_ms <= *timestamp_ms && *timestamp_ms <= next_full.timestamp_ms =>
+                        if prev.timestamp_ms <= *timestamp_ms
+                            && *timestamp_ms <= next_full.timestamp_ms =>
+                    {
+                        if let Some(row) =
+                            interpolate_photo_row(prev, next_full, ev, start_timestamp_ms)
                         {
-                            if let Some(row) = interpolate_photo_row(prev, next_full, ev, start_timestamp_ms) {
-                                out.push(row);
-                            }
+                            out.push(row);
                         }
+                    }
                     _ => {
                         let mut row = prev.clone();
                         row.timestamp_ms = *timestamp_ms;
@@ -123,6 +133,7 @@ pub fn expand_events_to_rows(events: &[Event], start_timestamp_ms: u64) -> Vec<c
     out
 }
 
+/// Builds ODL metadata from the log header and first full record.
 pub fn build_metadata(log: &AutelDroneLog) -> Metadata {
     let header = log.header();
     let records = log.records();
@@ -133,7 +144,9 @@ pub fn build_metadata(log: &AutelDroneLog) -> Metadata {
         _ => unreachable!("first record is expected to be full"),
     };
 
-    let utc = Utc.timestamp_millis_opt(*header.start_time_ms() as i64).unwrap();
+    let utc = Utc
+        .timestamp_millis_opt(*header.start_time_ms() as i64)
+        .unwrap();
     let offset = FixedOffset::east_opt(*header.timezone() as i32 * 3600).unwrap();
     let dt = utc.with_timezone(&offset);
 

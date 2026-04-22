@@ -3,6 +3,9 @@ use crate::{
     models::{ControlInput, CsvRow, Event},
 };
 
+/// Converts raw RC stick values into normalized control percentages.
+/// Assumes controller mode 2 because that setting doesn't seem to
+/// appear in the logs.
 pub fn rc_input_to_control(left_x: u16, left_y: u16, right_x: u16, right_y: u16) -> ControlInput {
     let rudder = ((left_x as i16 - 1024) as f32 / 1024.0) * 100.0;
     let elevator = ((left_y as i16 - 1024) as f32 / 1024.0) * 100.0;
@@ -17,10 +20,12 @@ pub fn rc_input_to_control(left_x: u16, left_y: u16, right_x: u16, right_y: u16)
     }
 }
 
+/// Linearly interpolates between two `f32` values.
 pub fn lerp_f32(a: f32, b: f32, t: f32) -> f32 {
     a + ((b - a) * t)
 }
 
+/// Linearly interpolates between optional `f32` values, preserving missing data.
 pub fn lerp_f32_opt(a: Option<f32>, b: Option<f32>, t: f32) -> Option<f32> {
     match (a, b) {
         (Some(x), Some(y)) => Some(x + ((y - x) * t)),
@@ -30,6 +35,7 @@ pub fn lerp_f32_opt(a: Option<f32>, b: Option<f32>, t: f32) -> Option<f32> {
     }
 }
 
+/// Builds an interpolated CSV row for a photo event between two samples.
 pub fn interpolate_photo_row(
     prev: &CsvRow,
     next: &CsvRow,
@@ -78,6 +84,7 @@ pub fn interpolate_photo_row(
     Some(row)
 }
 
+/// Converts a full log record into one CSV row.
 pub fn full_to_row(header_start_time_ms: u64, fr: &AutelDroneLog_FullRecordT) -> CsvRow {
     let mission_time_ms = *fr.mission_time_ms();
     let timestamp_ms = header_start_time_ms + mission_time_ms as u64;
