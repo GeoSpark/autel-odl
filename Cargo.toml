@@ -1,5 +1,5 @@
 [package]
-name = "autel-odl-rust"
+name = "autel-odl"
 version = "0.1.0"
 edition = "2024"
 
