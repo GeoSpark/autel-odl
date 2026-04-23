@@ -152,7 +152,7 @@ pub fn build_metadata(log: &AutelDroneLog) -> Metadata {
 
     let log_location = header.location().trim_end_matches('\0').to_string();
     let location = if log_location.is_empty() {
-        "Unknown location".to_string()
+        format!("{:.4}, {:.4}", header.start_latitude(), header.start_longitude())
     } else {
         log_location
     };
