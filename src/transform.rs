@@ -7,10 +7,11 @@ use crate::{
 /// Assumes controller mode 2 because that setting doesn't seem to
 /// appear in the logs.
 pub fn rc_input_to_control(left_x: u16, left_y: u16, right_x: u16, right_y: u16) -> ControlInput {
-    let rudder = ((left_x as i16 - 1024) as f32 / 1024.0) * 100.0;
-    let elevator = ((left_y as i16 - 1024) as f32 / 1024.0) * 100.0;
-    let aileron = -((right_x as i16 - 1024) as f32 / 1024.0) * 100.0;
-    let throttle = -((right_y as i16 - 1024) as f32 / 1024.0) * 100.0;
+    let rudder = map_range(left_x as f32, 0.0, 2048.0, -100.0, 100.0);
+    let elevator = map_range(left_y as f32, 0.0, 2048.0, -100.0, 100.0);
+    // The right stick needs to be inverted.
+    let aileron = map_range(right_x as f32, 0.0, 2048.0, 100.0, -100.0);
+    let throttle = map_range(right_y as f32, 0.0, 2048.0, 100.0, -100.0);
 
     ControlInput {
         aileron,
@@ -18,6 +19,10 @@ pub fn rc_input_to_control(left_x: u16, left_y: u16, right_x: u16, right_y: u16)
         throttle,
         rudder,
     }
+}
+
+pub fn map_range(x: f32, in_min: f32, in_max: f32, out_min: f32, out_max: f32) -> f32 {
+    (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min
 }
 
 /// Linearly interpolates between two `f32` values.
