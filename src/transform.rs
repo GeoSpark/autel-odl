@@ -8,10 +8,10 @@ use crate::{
 /// appear in the logs.
 pub fn rc_input_to_control(left_x: u16, left_y: u16, right_x: u16, right_y: u16) -> ControlInput {
     let rudder = map_range(left_x as f32, 0.0, 2048.0, -100.0, 100.0);
-    let elevator = map_range(left_y as f32, 0.0, 2048.0, -100.0, 100.0);
+    let throttle = map_range(left_y as f32, 0.0, 2048.0, -100.0, 100.0);
     // The right stick needs to be inverted.
     let aileron = map_range(right_x as f32, 0.0, 2048.0, 100.0, -100.0);
-    let throttle = map_range(right_y as f32, 0.0, 2048.0, 100.0, -100.0);
+    let elevator = map_range(right_y as f32, 0.0, 2048.0, 100.0, -100.0);
 
     ControlInput {
         aileron,
