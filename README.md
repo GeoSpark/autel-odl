@@ -26,7 +26,7 @@ Create or update your `parsers.json` file as per the [documentation](https://git
 
 ## Features
 Most of the log format has been reverse engineered, and can be found in the [Kaitai Struct](https://kaitai.io/) file
-`autel_parser.ksy`. If changes are made to the `.ksy` file, the code can be regenerated with:
+`autel_drone_log.ksy`. If changes are made to the `.ksy` file, the code can be regenerated with:
 
 $ `kaitai-struct-compiler -t rust . autel_drone_log.ksy`
 
